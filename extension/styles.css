@@ -1,0 +1,4 @@
+@keyframes edh-spin { to { transform: rotate(360deg) } }
+.edh-spin { animation: edh-spin .8s linear infinite; display: inline-block }
+#domainTable tr { transition: background-color .3s, border-left .3s }
+td.field_domain input[type=checkbox] { accent-color: #1565c0; cursor: pointer }

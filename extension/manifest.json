@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Domain Hunter Toolkit",
+  "version": "2.0",
+  "description": "Live DR/BL/RD data on ExpiredDomains.net via DataForSEO",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "*://*.expireddomains.net/*",
+    "https://api.dataforseo.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html" },
+  "content_scripts": [{
+    "matches": ["*://*.expireddomains.net/domains/*"],
+    "js": ["content_script.js"],
+    "css": ["styles.css"],
+    "run_at": "document_idle"
+  }]
+}

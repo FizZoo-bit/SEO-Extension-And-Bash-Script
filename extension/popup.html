@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Domain Hunter</title>
+<style>
+  body { width:300px;font-family:monospace;background:#1a1a2e;color:#e0e0e0;padding:0;margin:0 }
+  .hdr { background:#16213e;padding:14px;border-bottom:2px solid #0f3460;display:flex;gap:10px;align-items:center }
+  .hdr h1 { font-size:13px;margin:0 }
+  .hdr small { font-size:10px;color:#888 }
+  .body { padding:14px }
+  label { font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px }
+  input { width:100%;padding:7px;background:#0f3460;border:1px solid #1a4a8a;border-radius:4px;color:#e0e0e0;font-family:monospace;font-size:11px;box-sizing:border-box }
+  .help { font-size:10px;color:#555;margin-top:4px;line-height:1.4 }
+  button { width:100%;padding:8px;border:none;border-radius:4px;cursor:pointer;font-family:monospace;font-size:12px;font-weight:bold;margin-top:6px }
+  #save  { background:#2e7d32;color:#fff }
+  #clear { background:#c62828;color:#fff }
+  #status { padding:8px 14px;font-size:11px;min-height:28px }
+  #status.ok  { color:#66bb6a }
+  #status.err { color:#ef9a9a }
+  .legend { padding:0 14px 14px;font-size:11px;line-height:1.8 }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>🔍</div>
+  <div><h1>Domain Hunter Toolkit</h1><small>v2.0 — DataForSEO</small></div>
+</div>
+<div class="body">
+  <label>API Token (Base64)</label>
+  <input type="password" id="token" placeholder="base64(login:password)">
+  <div class="help">Generate: <code>echo -n "login:pass" | base64</code><br>
+  Get credentials at app.dataforseo.com/api-access</div>
+  <button id="save">💾 Save</button>
+  <button id="clear">🗑 Clear</button>
+</div>
+<div id="status" class="err">No token saved</div>
+<div class="legend">
+  🔵 Premium — DR60+ / BL10K+<br>
+  🟢 Good — DR31+ / BL1K+<br>
+  🟡 Medium — DR11+ / BL100+<br>
+  🔴 Low — below thresholds<br>
+  ☠️ Spam — spam score &gt;30%
+</div>
+<script src="popup.js"></script>
+</body>
+</html>
