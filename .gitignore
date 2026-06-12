@@ -1,0 +1,7 @@
+reports/
+*.log
+proxies.txt
+.env
+/tmp/bl_*
+/tmp/dhc_*
+/tmp/dhp_*
