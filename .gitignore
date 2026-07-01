@@ -1,7 +1,19 @@
+# Generated output — don't commit your own scan results
 reports/
+
+# SQLite cache
+*.sqlite3
+*.sqlite3-journal
+
+# Your actual domain list — likely contains data you don't want public
+# Remove this line if you DO want to share your domains.txt as an example
+domains.txt
+
+# Logs
 *.log
-proxies.txt
-.env
-/tmp/bl_*
-/tmp/dhc_*
-/tmp/dhp_*
+
+# OS/editor noise
+.DS_Store
+*.swp
+__pycache__/
+*.pyc

@@ -1,0 +1,12 @@
+{
+  "pet": ["pet", "dog", "cat", "puppy", "kitten", "vet", "veterinary", "animal", "paw", "canine", "feline", "kennel", "pup"],
+  "finance": ["finance", "loan", "credit", "bank", "invest", "money", "wealth", "mortgage", "insurance", "tax", "fund", "capital"],
+  "health": ["health", "fitness", "diet", "wellness", "nutrition", "gym", "yoga", "medical", "clinic", "therapy"],
+  "tech": ["tech", "software", "app", "digital", "code", "dev", "cyber", "data", "cloud", "ai", "robot"],
+  "travel": ["travel", "trip", "tour", "vacation", "hotel", "flight", "voyage", "explore", "adventure"],
+  "food": ["food", "recipe", "cook", "kitchen", "restaurant", "diet", "meal", "chef", "bake", "cuisine"],
+  "real_estate": ["realty", "realestate", "property", "home", "house", "rent", "mortgage", "land", "estate"],
+  "fashion": ["fashion", "style", "wear", "clothing", "apparel", "boutique", "trend", "outfit"],
+  "automotive": ["car", "auto", "vehicle", "motor", "garage", "tire", "drive", "racing"],
+  "gaming": ["game", "gaming", "play", "arcade", "esports", "console", "gamer"]
+}

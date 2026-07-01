@@ -13,9 +13,26 @@ div[data-testid="metric-container"] { background:#1a1a2e; border-radius:8px; pad
 </style>""", unsafe_allow_html=True)
 
 REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reports')
+NICHES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'niches.json')
 
 GRADE_COLORS = {'A':'#2e7d32','B':'#1565c0','C':'#f57f17','D':'#e65100','F':'#b71c1c'}
 IDX_COLORS   = {'CLEAN':'#2e7d32','NOT_INDEXED':'#f57f17','SPAM':'#b71c1c','ERR':'#546e7a','N/A':'#37474f'}
+
+@st.cache_data(ttl=10)
+def load_niches():
+    """Load niche->synonym keyword mapping. Returns {} if missing/invalid."""
+    try:
+        import json
+        with open(NICHES_PATH, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, Exception):
+        return {}
+
+def domain_matches_keywords(domain, keywords):
+    """Case-insensitive substring match of any keyword against the domain name.
+    Returns the list of keywords that matched (empty list = no match)."""
+    domain_lower = str(domain).lower()
+    return [kw for kw in keywords if kw.lower() in domain_lower]
 
 @st.cache_data(ttl=30)
 def load_reports():
@@ -43,7 +60,7 @@ def run_pipeline():
 # ── Sidebar ───────────────────────────────────────────────────────
 with st.sidebar:
     st.title("🔍 Domain Hunter")
-    st.caption("Toolkit v2.0 — 13 checks")
+    st.caption("Toolkit v2.0 — 12 checks")
     st.divider()
 
     st.subheader("⚙ Pipeline")
@@ -81,6 +98,31 @@ with st.sidebar:
         hide_scheme = st.checkbox("Hide link schemes", True)
         hide_spike  = st.checkbox("Hide velocity spikes", False)
 
+        st.divider()
+        st.subheader("🏷 Niche / Name Filter")
+        niches = load_niches()
+        niche_options = ["(none)"] + sorted(niches.keys())
+        selected_niche = st.selectbox(
+            "Match domain names against a niche",
+            niche_options,
+            help="Filters by keywords found in the domain NAME itself — e.g. selecting 'pet' shows domains containing pet, dog, cat, vet, etc."
+        )
+        custom_kw_input = st.text_input(
+            "Custom keywords (comma-separated, optional)",
+            placeholder="e.g. fish, aquarium, reptile",
+            help="Adds extra keywords on top of the selected niche, or use alone without picking a niche above."
+        )
+
+        # Build final keyword list — niche keywords + any custom additions
+        active_keywords = []
+        if selected_niche != "(none)" and selected_niche in niches:
+            active_keywords.extend(niches[selected_niche])
+        if custom_kw_input.strip():
+            active_keywords.extend([k.strip() for k in custom_kw_input.split(',') if k.strip()])
+
+        if active_keywords:
+            st.caption(f"Matching against: {', '.join(sorted(set(active_keywords)))}")
+
 # ── Main ──────────────────────────────────────────────────────────
 st.title("🔍 Domain Hunter Dashboard")
 
@@ -95,7 +137,8 @@ if df_all.empty:
 
 # Numeric coercion
 NUM_COLS = ['rank','backlinks','ref_domains','spam_score','score','wb_age',
-            'foreign_pct','velocity_spike_pct','ip_conc_pct','spam_rd_count']
+            'foreign_pct','velocity_spike_pct','ip_conc_pct','spam_rd_count',
+            'authority','spam_risk','link_profile','stability']
 for c in NUM_COLS:
     if c in df_all.columns:
         df_all[c] = pd.to_numeric(df_all[c], errors='coerce').fillna(0)
@@ -109,6 +152,14 @@ if 'score'         in df.columns:              df = df[df['score'] >= min_score]
 if hide_scheme and 'link_flag'    in df.columns: df = df[df['link_flag'] != 'LIKELY_SCHEME']
 if hide_spike  and 'velocity_flag' in df.columns:
     df = df[~df['velocity_flag'].isin(['SPIKE','SEVERE_SPIKE'])]
+
+# Niche/name filter — matches keywords against the domain name itself,
+# purely a display filter (every domain was already fully checked
+# regardless of name, so switching niches doesn't require a re-run)
+if active_keywords and 'domain' in df.columns:
+    matched_kw_series = df['domain'].apply(lambda d: domain_matches_keywords(d, active_keywords))
+    df = df[matched_kw_series.apply(len) > 0].copy()
+    df['matched_keywords'] = matched_kw_series[matched_kw_series.apply(len) > 0].apply(lambda kws: ', '.join(kws))
 
 # ── Overview tab ──────────────────────────────────────────────────
 with tab_overview:
@@ -192,20 +243,28 @@ with tab_domains:
     if df.empty:
         st.warning("No domains match filters.")
     else:
-        disp_cols = ['domain','available','index_status','score','grade','rank','backlinks',
+        disp_cols = ['domain','available','index_status','score','grade',
+                     'authority','spam_risk','link_profile','stability',
+                     'rank','backlinks',
                      'ref_domains','spam_score','niche','niche_status','redirect_status',
-                     'anchor_flag','velocity_flag','foreign_flag','ip_flag','cache_status',
+                     'anchor_flag','velocity_flag','foreign_flag','ip_flag',
                      'link_flag','wb_age','score_flags']
+        if 'matched_keywords' in df.columns:
+            disp_cols.append('matched_keywords')
         disp_cols = [c for c in disp_cols if c in df.columns]
         df_disp = df[disp_cols].copy().sort_values('score', ascending=False) if 'score' in df.columns else df[disp_cols].copy()
         df_disp = df_disp.rename(columns={
             'domain':'Domain','available':'Avail','index_status':'Index',
-            'score':'Score','grade':'Grade','rank':'DR','backlinks':'Backlinks',
+            'score':'Score','grade':'Grade',
+            'authority':'Authority','spam_risk':'Spam Risk',
+            'link_profile':'Link Profile','stability':'Stability',
+            'rank':'DR','backlinks':'Backlinks',
             'ref_domains':'Ref Domains','spam_score':'Spam%','niche':'Niche',
             'niche_status':'Niche Status','redirect_status':'Redirect',
             'anchor_flag':'Anchors','velocity_flag':'Velocity',
-            'foreign_flag':'Foreign','ip_flag':'IP Div','cache_status':'Cache',
-            'link_flag':'Link Flag','wb_age':'Age(y)','score_flags':'Flags'
+            'foreign_flag':'Foreign','ip_flag':'IP Div',
+            'link_flag':'Link Flag','wb_age':'Age(y)','score_flags':'Flags',
+            'matched_keywords':'Matched On'
         })
 
         def style_score(val):
